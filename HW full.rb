@@ -12,11 +12,7 @@ class Registration_Test < Test::Unit::TestCase
     @browser.get 'http://demo.redmine.org'
   end
 
-  def go_to_home_page
-    @browser.get 'http://demo.redmine.org'
-  end
-
-  def registration
+   def registration
     login = rand(999).to_s + 'loginTest'
     @browser.find_element(:class, 'register').click
     @browser.find_element(:id, 'user_login').send_keys login
@@ -31,8 +27,8 @@ class Registration_Test < Test::Unit::TestCase
 
   def register_user1
 
-    @user1email = 'user1@email.com'
-    @user1password = 'password1'
+    user1email = 'user1@email.com'
+    user1password = 'password1'
 
     @browser.find_element(:class, 'register').click
     @browser.find_element(:id, 'user_login').send_keys 'User1'
@@ -44,51 +40,56 @@ class Registration_Test < Test::Unit::TestCase
     @browser.find_element(:name, 'commit').click
   end
 
+  def user1_login
+    @browser.find_element(:class, 'login').click
+    @browser.find_element(:id, 'username').send_keys 'user1'
+    @browser.find_element(:id, 'password').send_keys 'password1'
+    @browser.find_element(:name, 'login').click
+  end
 
-
+  def create_project
+    project_name = rand(999).to_s + 'test_project'
+    unigue_name = project_name
+    @browser.find_element(:class, 'projects').click
+    @browser.find_element(:class, 'icon-add').click
+    @browser.find_element(:id, 'project_name').send_keys unigue_name.upcase
+    @browser.find_element(:name, 'project[identifier]').send_keys '_' + unigue_name #очистить поле перед введением
+    @browser.find_element(:name, 'commit').click
+  end
+=begin
   # 1. User Registration
   def test_user_registration_1
-    setup
     registration
 
-
-  # visible = @browser.find_element(:id, 'flash_notice').displayed?
-  # assert_equal(true,visible)
-  # 
-  # if text: expect(@browser.find_element(:id, 'flash_notice').text).to include('Ваша учётная запись активирована. Вы можете войти.')
-  # 
-  expect(@browser.find_element(:id, 'flash_notice')).to be_displayed
+   # visible = @browser.find_element(:id, 'flash_notice').displayed?
+   # assert_equal(true,visible)
+   #
+    expect(@browser.find_element(:id, 'flash_notice').text).to include('Your account has been activated. You can now log in.')
+   #
+   # expect(@browser.find_element(:id, 'flash_notice')).to be_displayed
   
   end
+
 
  
   # 2. Log in/Log out
   def test_login
-  	setup
-    register_user1 
-  # непонятно как поступить в случае есл такой пользователь уже существует. Если не существует создать
-  # и под ним залогиниться, а если да, то пропустить этот шаг и залогиниться.
-
-    @browser.find_element(:class, 'logout').click
-
-    @browser.find_element(:class, 'login').click
-    @browser.find_element(:id, 'username').send_keys 'user1email' #как использовать переменную из метода?
-    @browser.find_element(:id, 'password').send_keys 'user1password'
-    @browser.find_element(:name, 'login').click
-        
+    #{register_user1}" как пропустить этот шаг в случае если юзер уже был создан?
+    user1_login
+  #expect(@browser.find_element(:id, 'flash_notice').text).to include('Your account has been activated. You can now log in.')
   end
 
+
   def test_logout
-	setup
-    registration
+	   user1_login
     @browser.find_element(:class, 'logout').click
+  end
 
 
-    
 
   # 3. Change password
   def test_change_password
-    go_to_home_page
+    registration
     # http://demo.redmine.org/my/password
     @browser.find_element(:class, 'icon-passwd').click
     @browser.find_element(:id, 'password').send_keys 'password1' #old password
@@ -97,41 +98,47 @@ class Registration_Test < Test::Unit::TestCase
 
     @browser.find_element(:name, 'commit').click
 
-    expected = 'Your account has been activated. You can now log in.'
-    assert_equal(expected, @browser.find_element(:id, 'flash_notice').text)
+    expect(@browser.find_element(:id, 'flash_notice').text).to include('Password was successfully updated')
   end
+
 
 
   # 4. Create Project + Create Project version
-  def test_project_and_version
-    go_to_home_page
-    @browser.find_element(:class, 'login').click
-    @browser.find_element(:id, 'username').send_keys 'User1'
-    @browser.find_element(:id, 'password').send_keys 'password1'
-    @browser.find_element(:name, 'login').click
+  def test_create_project
+    user1_login
+    create_project
 
-    @browser.find_element(:class, 'projects').click
-    @browser.find_element(:class, 'icon-add').click
-    @browser.find_element(:id, 'project_name').send_keys 'Project_1'
-    @browser.find_element(:id, 'project_indentifier').send_keys 'Project_1' # проверить чтоб совпадал с именем без регистра???
-    @browser.find_element(:name, 'commit').click
+    expect(@browser.find_element(:id, 'flash_notice').text).to include('Successful creation.')
+    end
+=end
 
+  def test_create_project_version
+    user1_login
+    create_project
+    project_name = rand(999).to_s + 'Project'
     @browser.find_element(:id, 'tab-versions').click
-    @browser.find_element(:class, 'icon_add').click
-    @browser.find_element(:id, 'version_name').send_keys 'Project_1_Version_1'
+    @browser.find_element(:id, '!!!tab-content-versions').click # написать правильный локатор =((
+    @browser.find_element(:id, 'version_name').send_keys project_name
     @browser.find_element(:name, 'commit').click
-
-    expected = 'Successful creation.'
-    assert_equal(expected, @browser.find_element(:id, 'flash_notice').text)
-
   end
 
 
-  	# 5 Add another (your) user to the Project + Edit their (users’) roles
- 	# 6. Create all 3 types of issues + Ensure they are visible on ‘Issues’ tab
- 	# Closing browser after each test
+   # 5 Add another (your) user to the Project + Edit their (users’) roles
+
+  def test_add_user_to_project
+    user1_login
+    create_project
+
+  end
+ 	 # 6. Create all 3 types of issues + Ensure they are visible on ‘Issues’ tab
+ 	 # Closing browser after each test
+
+=begin
    def teardown
     @browser.quit
    end
 
+=end
+
 end
+
